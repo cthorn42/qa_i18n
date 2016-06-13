@@ -1,70 +1,161 @@
 module InternationalStringGenerator
-  CHINESE_RANGE=[*"\u4E00".."\u9FFF"]
-  GERMAN_RANGE=['\uXC4', '\uXE4', '\uXC9', '\uXE9', '\uXD6', '\uXF6', '\uXDC', '\uXFC', '\uXDF']
-  ENGLISH_RANGE=['']
-  NUMERICAL_RANGE=['']
-  WHITE_SPACE_CHARACTERS=['\u00A0', '\u3000', [*"\u2002".."\u200B"]].flatten
-  MAX_LENGTH_CHARACTERS=['\u00DF', '\u2070E']
+  CHINESE_CHARACTERS    =[*"\u4E00".."\u4E20"]
+  GERMAN_CHARACTERS     =["\u00C4", "\u00E4", "\u00D6", "\u00F6", "\u00DC", "\u00FC"]
+  ENGLISH_CHARACTERS    =[*"\u0041".."\u007A"]
+  NUMERIC_CHARACTERS    =[*"\u0030".."\u0039"]
 
-  SYNTAX_CHARACTERS=['&', '+', '/', '\\', '"', "'",  '(', ')',  '?', '.', '#', '@', '_', '-', '~']
 
-  def random_multi_lang(length)
-    random_characters([[CHINESE_RANGE], [ENGLISH_RANGE], [GERMAN_RANGE]], length)
+  WHITE_SPACE_CHARACTERS=[" ", *"\u2002".."\u200B"]
+  MAX_LENGTH_CHARACTERS =["\u00DF"]
+  SYNTAX_CHARACTERS     =['&', '+', '/', '\\', '"', "'",  '(', ')',  '?', '.', '#', '@', '_', '-', '~']
+
+  # Gets a random number generator with optional seed
+  # @param [Int] seed - Random seed for re-playing random value.
+  # @return [Object] - an instance of the Random class
+  def get_rng(seed = nil)
+    seed ||= Random.new_seed
+    puts "random seed used: #{seed}"
+    Random.new(seed)
   end
 
-  def random_multi_lang_sentence(length)
-    random_characters([[CHINESE_RANGE], [ENGLISH_RANGE], [GERMAN_RANGE], [WHITE_SPACE_CHARACTERS], []], length)
+  # produces a random multiple language string including Chinese, German and English characters
+  # @param [Int] length - Length of string desired
+  # @param [Int] seed - Random seed for re-playing random value.
+  # @return [String] - The random string
+  def random_multi_lang(length, seed=nil)
+    random_characters([CHINESE_CHARACTERS, ENGLISH_CHARACTERS, GERMAN_CHARACTERS], length, seed)
   end
 
+  # produces a random multiple language sentence including Chinese, German and English characters
+  # @param [Int] length - Length of string desired
+  # @param [Int] seed - Random seed for re-playing random value.
+  # @return [String] - The random string
+  def random_multi_lang_sentence(length, seed = nil)
+    raise('length of sentence must be at least 2') unless length > 1
+    chars = random_characters([CHINESE_CHARACTERS, ENGLISH_CHARACTERS, GERMAN_CHARACTERS], length, seed )
+    index = 0
+    while index + 13 < length
+      index = index + (1..12).to_a.sample(1)[0]
+      chars.insert(index, ' ')
+    end
+    chars[0..(length-2)] + '.'
+  end
+
+  # produces a random Chinese language string
   # The Chinese, Japanese and Korean (CJK) scripts share a common background, collectively known as CJK characters
-  def random_chinese_japanese_korean_characters(length)
-    random_characters([CHINESE_RANGE], length)
+  # @param [Int] length - Length of string desired
+  # @param [Int] seed - Random seed for re-playing random value.
+  # @return [String] - The random string
+  def random_chinese_characters(length, seed = nil)
+    random_characters(CHINESE_CHARACTERS, length, seed)
   end
 
-  def random_english(length)
-    random_characters([ENGLISH_RANGE], length)
+  # produces a random English language string
+  # @param [Int] length - Length of string desired
+  # @param [Int] seed - Random seed for re-playing random value.
+  # @return [String] - The random string
+  def random_english(length, seed = nil)
+    random_characters(ENGLISH_CHARACTERS, length, seed)
   end
 
-  def random_english_and_numerical(length)
-    random_characters([ENGLISH_RANGE, NUMERICAL_RANGE], length)
+  # produces a random English language sentence
+  # @param [Int] length - Length of string desired
+  # @param [Int] seed - Random seed for re-playing random value.
+  # @return [String] - The random string
+  def random_english_sentence(length, seed = nil)
+    raise('length of sentence must be at least 2') unless length > 1
+    chars = random_characters(ENGLISH_CHARACTERS, length, seed )
+    index = 0
+    while index + 13 < length
+      index = index + (1..12).to_a.sample(1)
+      chars.insert(index, ' ')
+    end
+    chars[0..(length-1)] + '.'
   end
 
-  # Some specific german characters such as any that use the umlaut need to be tested
-  def random_german(length)
-    random_characters(GERMAN_RANGE, length)
+  # produces a random English alpha-numeric string
+  # @param [Int] length - Length of string desired
+  # @param [Int] seed - Random seed for re-playing random value.
+  # @return [String] - The random string
+  def random_alpha_numeric(length, seed = nil)
+    random_characters([ENGLISH_CHARACTERS, NUMERIC_CHARACTERS], length, seed)
   end
 
-  # Generate random characters from various utf8 ranges. Can repeat characters.
-  def random_characters(utf8_ranges, length)
-    length.times.map { utf8_ranges.flatten.sample(length) }.join("")
+  # produces a random German string
+  # @param [Int] length - Length of string desired
+  # @param [Int] seed - Random seed for re-playing random value.
+  # @return [String] - The random string
+  def random_german(length, seed = nil)
+    random_characters(GERMAN_CHARACTERS, length, seed)
   end
 
-  # If a value is required to be less than a certain length, try using this.
-  # When the first character is converted to uppercase, the length changes!
-  # This can cause problems if a developer is upper-casing strings for a case insensitive compare
-  # The second character is a 4 byte character.  If a field has a memory limitation, which it uses
-  # a max number of characters to enforce, this could break it.
-  def max_length_test_string(length)
-    (length / 2).times.map(MAX_LENGTH_CHARACTERS.join(""))
+  # Generate random strings from various utf8 character ranges. Can repeat characters.
+  # @param [Array<Array<Char>>] utf8_ranges - an array of an array of character ranges
+  # @param [Int] length - Length of string desired
+  # @param [Int] seed - Random seed for re-playing random value.
+  # @return [String] - The random string
+  def random_characters(utf8_ranges, length, seed = nil)
+    (length.times.map { utf8_ranges.flatten }).flatten.sample(length, random: get_rng(seed)).join("")
   end
 
-  # If white space is being trimmed, prepend or append this to your string to ensure all white space is being trimmed
-  # This includes non breaking spaces, as well as various 'space' characters from various languages.
+  # Creates an array of strings of a certain length, then iterates through them passing each string
+  # to a block for testing. You can optionally exclude syntax and white space chararcters if the
+  # input being tested does not allow them.
+  # Example: iterates through array of strings of length 10, testing all special characters according to the block
+  # test_i18n_strings(10) { |test_string|
+  #   # Enter data
+  #   create_user("User#{test_string})
+  #   # Validate data
+  #   verify_user_name_exists("User#{test_string}")
+  # }
   #
-  # Always 12 characters
-  def white_space_test_string
-    WHITE_SPACE_CHARACTERS.join("")
+  # @param [Int] string_length - The length of the string you want to test with
+  # @param [Array<Symbol>] exclude - String types to exclude from testing :syntax or :white_space
+  def test_i18n_strings(string_length, exclude=[], &block)
+    raise("test_i18n_strings requires a block with arity of 1") unless block_given? && block.arity == 1
+
+    puts('Testing Chinese characters')
+    get_strings_of_length_from_char_array(CHINESE_CHARACTERS, string_length).each{|string|
+      yield string
+    }
+    puts 'Testing German characters'
+    get_strings_of_length_from_char_array(GERMAN_CHARACTERS, string_length).each{|string|
+      yield string
+    }
+    puts 'Testing max length characters'
+    get_strings_of_length_from_char_array(MAX_LENGTH_CHARACTERS, string_length).each{|string|
+      yield string
+    }
+    puts 'Testing syntax characters'
+    get_strings_of_length_from_char_array(SYNTAX_CHARACTERS, string_length).each{|string|
+      yield string
+    } unless exclude.include?(:syntax)
+    puts 'Testing white space characters'
+    get_strings_of_length_from_char_array(WHITE_SPACE_CHARACTERS, string_length).each{|string|
+      yield string
+    } unless exclude.include?(:white_space)
   end
 
-  # Syntax significant characters often need to be escaped and then unescaped.
-  # It is easy for characters to accidentally get double-escaped, or get escaped differently
-  # multiple times in one order and get unescaped in a different order.
-  # If a field does not outright disallow these characters,
-  # ensure they come back the same as they were entered.
-  #
-  # Always 15 characters
-  def syntax_significant_characters
-    SYNTAX_CHARACTERS.join("")
+
+  def get_strings_of_length_from_char_array(array, string_length)
+    strings = []
+    if(array.length == string_length)
+      strings.push(array.join('').encode('UTF-8'))
+    elsif(array.length < string_length)
+      my_string = array.join('').encode!('UTF-8')
+      while(my_string.length < string_length)
+        my_string = (my_string + array.join('')).encode('UTF-8')
+      end
+      strings.push(my_string[0...string_length].encode('UTF-8'))
+    else
+      my_string = array.join('')
+      while(my_string.length > string_length)
+        strings.push(my_string.slice!(0...string_length).encode('UTF-8'))
+      end
+      # For the final characters, add the first characters from the array to equal the expected string length
+      strings.push(my_string + array[0...(string_length - my_string.length)].join('').encode('UTF-8'))
+    end
   end
+  private :get_strings_of_length_from_char_array
 
 end

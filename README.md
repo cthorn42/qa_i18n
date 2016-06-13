@@ -1,4 +1,4 @@
-# QaI18nExamples
+# qa_i18n
 
 This repo contains Ruby modules to help test i18n of a project.  It has utilities to:
 
