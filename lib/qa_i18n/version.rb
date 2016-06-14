@@ -1,12 +1,10 @@
 module Beaker
   module DSL
     module Helpers
-      module Template
-
+      module QaI18n
         module Version
-          STRING = '0.0.1rc0'
+          STRING = '0.0.1'
         end
-
       end
     end
   end
